@@ -1,23 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getContacts, getFiltrValue } from 'redux/selectors';
+import {
+  selectContacts,
+  selectFilteredContacts,
+  selectIsLoading,
+  selectError,
+} from 'redux/selectors';
 import { ContList, ContItem, ListBtn } from './ContactList.styled';
-import { deleteContact } from 'redux/contactsSlice';
+import { deleteContact, fetchContacts } from 'redux/operations';
+import Loader from 'components/loader/loader';
 
 const ContactList = () => {
-  const filterValue = useSelector(getFiltrValue);
-  const contacts = useSelector(getContacts);
+  const contacts = useSelector(selectContacts);
+  const filteredContacts = useSelector(selectFilteredContacts);
   const dispatch = useDispatch();
-  const normalizedFilter = filterValue.toLowerCase();
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
 
-  const filterContactList = contacts.filter(contact =>
-    contact.name.toLowerCase().includes(normalizedFilter)
-  );
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   return (
     <ContList>
+      {isLoading && <Loader isLoading={isLoading} />}
+      {error && <p>Oops! Something went wrong.</p>}
       {contacts.length > 0 &&
-        filterContactList.map(({ id, name, number }) => {
+        filteredContacts.map(({ id, name, number }) => {
           return (
             <ContItem key={id}>
               {name}: {number}
@@ -26,7 +35,7 @@ const ContactList = () => {
                 id={id}
                 type="button"
               >
-                delete
+                Delete
               </ListBtn>
             </ContItem>
           );

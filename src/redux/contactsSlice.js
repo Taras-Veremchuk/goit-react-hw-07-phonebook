@@ -1,65 +1,52 @@
-import { nanoid } from '@reduxjs/toolkit';
 import { createSlice } from '@reduxjs/toolkit';
-import storage from 'redux-persist/lib/storage';
-import { persistReducer } from 'redux-persist';
+import { addContact, deleteContact, fetchContacts } from './operations';
 
-export const contactsSlice = createSlice({
+const contactsSlice = createSlice({
   name: 'contacts',
   initialState: {
-    contacts: [],
-    filter: '',
+    items: [],
+    isLoading: false,
+    error: null,
   },
-  reducers: {
-    addContact: {
-      reducer(state, action) {
-        state.contacts.push(action.payload);
-      },
-      prepare({ name, number }) {
-        return {
-          payload: {
-            id: nanoid(),
-            name: name,
-            number: number,
-          },
-        };
-      },
-    },
-    deleteContact: {
-      reducer(state, action) {
-        const index = state.contacts.findIndex(
-          contact => contact.id === action.payload
-        );
-        state.contacts.splice(index, 1);
-      },
-      prepare(id) {
-        return {
-          payload: id,
-        };
-      },
-    },
-    changeFilter: {
-      reducer(state, action) {
-        state.filter = action.payload;
-      },
-    },
+  extraReducers: builder => {
+    builder
+      .addCase(fetchContacts.pending, state => {
+        state.isLoading = true;
+      })
+      .addCase(fetchContacts.fulfilled, (state, action) => {
+        state.items = action.payload;
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(fetchContacts.rejected, (state, action) => {
+        state.error = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(deleteContact.pending, state => {
+        state.isLoading = true;
+      })
+      .addCase(deleteContact.fulfilled, (state, action) => {
+        const index = state.items.findIndex(item => item.id === action.payload);
+        state.items.splice(index, 1);
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(deleteContact.rejected, (state, action) => {
+        state.error = action.payload;
+        state.isLoading = false;
+      })
+      .addCase(addContact.pending, state => {
+        state.isLoading = true;
+      })
+      .addCase(addContact.fulfilled, (state, action) => {
+        state.items.push(action.payload);
+        state.isLoading = false;
+        state.error = null;
+      })
+      .addCase(addContact.rejected, (state, action) => {
+        state.error = action.payload;
+        state.isLoading = false;
+      });
   },
 });
-
-const persistConfig = {
-  key: 'root',
-  storage,
-  // whitelist: ['contacts'],
-};
-export const persistedReducer = persistReducer(
-  persistConfig,
-  contactsSlice.reducer
-);
-
-//  --- Action creators are generated for each case reducer function ---
-export const {
-  changeFilter,
-  addContact,
-  deleteContact,
-  increment,
-  dincrement,
-} = contactsSlice.actions;
+export const { reducer: contactsReducer } = contactsSlice;

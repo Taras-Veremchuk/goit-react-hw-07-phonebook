@@ -1,17 +1,17 @@
 import React from 'react';
 import { Input, Label } from './Filter.styled';
 import { useDispatch } from 'react-redux';
-import { changeFilter } from 'redux/contactsSlice';
+import { setFilterValue } from 'redux/filterSlice';
 
 const Filter = () => {
   const dispatch = useDispatch();
-  const changeFiltr = event => {
-    dispatch(changeFilter(event.target.value));
+  const changeFilter = event => {
+    dispatch(setFilterValue(event.target.value));
   };
   return (
     <Label>
       Find contact by name
-      <Input type="text" onChange={changeFiltr} />
+      <Input type="text" onChange={changeFilter} />
     </Label>
   );
 };
